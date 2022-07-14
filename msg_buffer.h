@@ -3,7 +3,7 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/algorithm/hex.hpp>
-// #include <boost/uuid/detail/md5.hpp>
+#include <boost/uuid/detail/md5.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <fstream>
@@ -78,15 +78,15 @@ namespace DataSender
             // Set timestamp into header
             (void)memcpy(sentBufferMsg + size_len + number_len, time_str.c_str(), time_len);
 
-            // // Get MD5
-            // boost::uuids::detail::md5 boost_md5;
-            // boost_md5.process_bytes(bufferMsg + header_len, dataSize);
-            // boost::uuids::detail::md5::digest_type digest;
-            // boost_md5.get_digest(digest);
-            // // Set MD5 into header
-            // uint8_t* md5_p = bufferMsg + size_len + number_len + time_len;
-            // uint8_t* uint8_digest_p = reinterpret_cast<uint8_t*>(&digest);
-            // (void)memcpy(md5_p, uint8_digest_p, md5_len);
+            // Get MD5
+            boost::uuids::detail::md5 boost_md5;
+            boost_md5.process_bytes(sentBufferMsg + header_len, dataSize);
+            boost::uuids::detail::md5::digest_type digest;
+            boost_md5.get_digest(digest);
+            // Set MD5 into header
+            uint8_t* md5_p = sentBufferMsg + size_len + number_len + time_len;
+            uint8_t* uint8_digest_p = reinterpret_cast<uint8_t*>(&digest);
+            (void)memcpy(md5_p, uint8_digest_p, md5_len);
 
             // Print to console
             std::stringstream logstr;

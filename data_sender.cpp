@@ -51,17 +51,11 @@ int main()
     std::cout << "\nPlease, check the configuration above and press Enter to continue.\n";
     std::cin.ignore();
 
-    // using namespace boost::asio;
-    // io_service service;
-    // ip::udp::socket sock(service);
-    // sock.open(ip::udp::v4());
-    // ip::udp::endpoint local_ep(ip::address::from_string(configval.local_ip), configval.local_port);
-    // ip::udp::endpoint remote_ep(ip::address::from_string(configval.remote_ip), configval.remote_port);
-    // sock.bind(local_ep);
+    std::string tcp_addr_s = "tcp://" + configval.remote_ip + ":" + std::to_string(configval.remote_port);
 
     void *clientContext = zmq_ctx_new();
     void *clientSocket = zmq_socket(clientContext, ZMQ_REQ);
-    int ns = zmq_connect(clientSocket, "tcp://192.168.1.117:5001");
+    int ns = zmq_connect(clientSocket, tcp_addr_s.c_str());
 
     DataSender::CMsgBuffer msgBufferObj(configval);
 
@@ -72,7 +66,7 @@ int main()
 
         void *recvBuffer_p = msgBufferObj.getReceiveDataBuffer();
         
-        short sent_n = zmq_send(clientSocket, sentBuffer_p, sentDataLength, 0);
+        short sent_n = zmq_send(clientSocket, sentBuffer_p, sentDataLength, ZMQ_DONTWAIT);
 
         short recv_n = zmq_recv(clientSocket, recvBuffer_p, msgBufferObj.getMaxDataBuffer(), 0);
 
@@ -99,13 +93,8 @@ int main()
             std::this_thread::sleep_for(std::chrono::milliseconds(configval.delay_after_aliquot_ms));
         }
     }
-    //sock.close();
-
-#ifdef IS_ZMQ
-
     zmq_close (clientSocket);
     zmq_ctx_destroy (clientContext);
-#endif
 
     boost::posix_time::ptime now_stat = boost::posix_time::second_clock::local_time();
     std::string time_stat = to_iso_extended_string(now_stat);
